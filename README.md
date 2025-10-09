@@ -69,4 +69,4 @@ update-database
 ---
 
 ## ✨ Related Project
-Frontend: 🔗 [Friendship React App](https://ashy-stone-09b187203.2.azurestaticapps.net/)
+Frontend: 🔗 [Friendship React App](https://github.com/lukas99o/Friendship-App)
