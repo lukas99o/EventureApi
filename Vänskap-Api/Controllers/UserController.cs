@@ -29,6 +29,27 @@ public class UserController : ControllerBase
         }
     }
 
+    [HttpDelete("delete-profile-picture")]
+    public async Task<IActionResult> DeleteProfilePicture()
+    {
+        try
+        {
+            var result = await _userService.DeleteProfilePictureAsync();
+            if (result)
+            {
+                return Ok(new { Message = "Profile picture deleted successfully." });
+            }
+            else
+            {
+                return BadRequest(new { Error = "Failed to delete profile picture." });
+            }
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
+    }
+
     [HttpGet("{userId}")]
     public async Task<ActionResult> GetUser(string userId)
     {

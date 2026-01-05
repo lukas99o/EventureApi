@@ -80,4 +80,28 @@ public class UserService : IUserService
         var result = await _userManager.UpdateAsync(user);
         return result.Succeeded;
     }
+
+    public async Task<bool> DeleteProfilePictureAsync()
+    {
+        var user = await _userManager.FindByIdAsync(UserId);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        if (string.IsNullOrEmpty(user.ProfilePicturePath))
+        {
+            throw new Exception("No profile picture to delete");
+        }
+
+        var filePath = Path.Combine(_environment.WebRootPath, user.ProfilePicturePath.TrimStart('/'));
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+
+        user.ProfilePicturePath = null;
+        var result = await _userManager.UpdateAsync(user);
+        return result.Succeeded;
+    }
 }
