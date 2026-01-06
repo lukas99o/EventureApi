@@ -27,7 +27,7 @@ namespace Vänskap_Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateEvent(EventDto createEvent)
+        public async Task<IActionResult> CreateEvent([FromForm] EventDto createEvent)
         {
             var evnt = await _eventService.CreateEvent(createEvent);
 

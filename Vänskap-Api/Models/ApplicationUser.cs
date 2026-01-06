@@ -18,5 +18,7 @@ namespace Vänskap_Api.Models
         public ICollection<Friendship> Friendships { get; set; } = new List<Friendship>();
         public ICollection<MessageReadAt> ReadMessages { get; set; } = new List<MessageReadAt>();
         public string? ProfilePicturePath { get; set; }
+        public DateTime? LastProfilePictureUpload { get; set; }
+        public int ProfilePictureUploadCountToday { get; set; } = 0;
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Asn1;
 using Sprache;
 using System.Runtime.CompilerServices;
@@ -14,19 +15,32 @@ namespace Vänskap_Api.Service
     {
         private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IWebHostEnvironment _enviroment;
         private string UserId => _contextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new ArgumentNullException(nameof(UserId));
         private string UserName => _contextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Name)?.Value ?? throw new ArgumentNullException(nameof(UserName)); 
 
-        public EventService(ApplicationDbContext context, IHttpContextAccessor contextAssessor)
+        public EventService(ApplicationDbContext context, IHttpContextAccessor contextAssessor, IWebHostEnvironment enviroment)
         {
             _context = context;
             _contextAccessor = contextAssessor;
+            _enviroment = enviroment;
         }
 
         public async Task<ReadEventDto?> CreateEvent(EventDto createEvent)
         {
-            var interests = new List<Interest>();
+            var today = DateTime.UtcNow.Date;
 
+            var eventsToday = await _context.Events
+                .CountAsync(e =>
+                    e.CreatedByUserId == UserId &&
+                    e.CreatedAt >= today);
+
+            if (eventsToday >= 5)
+            {
+                throw new Exception("Daily event limit reached");
+            }
+
+            var interests = new List<Interest>();
             if (createEvent.Interests != null)
             {
                 interests = await _context.Interests
@@ -45,12 +59,12 @@ namespace Vänskap_Api.Service
                 AgeRangeMin = createEvent.AgeRangeMin,
                 IsPublic = createEvent.IsPublic,
                 Location = createEvent.Location,
-                Img = createEvent.Img,
                 EventInterests = new List<EventInterest>(),
                 EventParticipants = new List<EventParticipant>()
             };
 
             await _context.Events.AddAsync(createObj);
+            await _context.SaveChangesAsync();
 
             foreach (var interest in interests)
             {
@@ -71,7 +85,7 @@ namespace Vänskap_Api.Service
 
             var conversation = new Conversation()
             {
-                Title = $"Chat för {createObj.Title}",
+                Title = $"Chat för {createObj.Title}"
             };
 
             var conversationParticipant = new ConversationParticipant()
@@ -81,10 +95,35 @@ namespace Vänskap_Api.Service
                 Conversation = conversation
             };
             conversation.ConversationParticipants.Add(conversationParticipant);
-
             createObj.Conversation = conversation;
 
-            await _context.Conversations.AddAsync(conversation);
+            if (createEvent.EventPicture != null)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                var fileExtension = Path.GetExtension(createEvent.EventPicture.FileName).ToLower();
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    throw new Exception("Invalid file type");
+                }
+
+                const long MaxFileSize = 2 * 1024 * 1024;
+                if (createEvent.EventPicture.Length > MaxFileSize)
+                {
+                    throw new Exception("File too large");
+                }
+
+                var uploadsFolder = Path.Combine(_enviroment.WebRootPath, "images", "events");
+                Directory.CreateDirectory(uploadsFolder);
+                var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await createEvent.EventPicture.CopyToAsync(fileStream);
+                }
+
+                createObj.Img = $"/images/events/{uniqueFileName}";
+            }
 
             await _context.SaveChangesAsync();
 
@@ -387,8 +426,10 @@ namespace Vänskap_Api.Service
                 .Include(e => e.EventInterests)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
-            var interests = new List<Interest>();
+            if (evnt == null)
+                return false;
 
+            var interests = new List<Interest>();
             if (updateEvent.Interests != null)
             {
                 interests = await _context.Interests
@@ -396,36 +437,75 @@ namespace Vänskap_Api.Service
                     .ToListAsync();
             }
 
-            if (evnt != null)
+            evnt.EventInterests?.Clear();
+            foreach (var interest in interests)
             {
-                foreach (var interest in interests)
+                evnt.EventInterests!.Add(new EventInterest
                 {
-                    var eventInterest = new EventInterest
-                    {
-                        EventId = id,
-                        InterestId = interest.Id,
-                    };
-
-                    evnt.EventInterests?.Add(eventInterest);
-                }
-
-                evnt.CreatedByUserId = UserId;
-                evnt.Title = updateEvent.Title;
-                evnt.Description = updateEvent.Description;
-                evnt.Location = updateEvent.Location;
-                evnt.AgeRangeMax = updateEvent.AgeRangeMax;
-                evnt.AgeRangeMin = updateEvent.AgeRangeMin;
-                evnt.IsPublic = updateEvent.IsPublic;
-                evnt.StartTime = updateEvent.StartTime;
-                evnt.EndTime = updateEvent.EndTime;
-                evnt.Img = updateEvent.Img;
-
-                _context.Update(evnt);
-                await _context.SaveChangesAsync();
-                return true;
+                    EventId = evnt.Id,
+                    InterestId = interest.Id
+                });
             }
 
-            return false;
+            if (updateEvent.EventPicture != null)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                var fileExtension = Path.GetExtension(updateEvent.EventPicture.FileName).ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(fileExtension))
+                    throw new Exception("Invalid file type");
+
+                const long MaxFileSize = 2 * 1024 * 1024; 
+                if (updateEvent.EventPicture.Length > MaxFileSize)
+                    throw new Exception("File too large");
+
+                var today = DateTime.UtcNow.Date;
+
+                if (!evnt.LastImageUpdate.HasValue || evnt.LastImageUpdate.Value.Date < today)
+                {
+                    evnt.ImageUpdateCountToday = 0;
+                }
+
+                if (evnt.ImageUpdateCountToday >= 3)
+                {
+                    throw new Exception("You can only update the event image 3 times per day");
+                }
+
+                var uploadsFolder = Path.Combine(_enviroment.WebRootPath, "images", "events");
+                Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await updateEvent.EventPicture.CopyToAsync(fileStream);
+                }
+
+                if (!string.IsNullOrEmpty(evnt.Img))
+                {
+                    var oldFilePath = Path.Combine(_enviroment.WebRootPath, evnt.Img.TrimStart('/'));
+                    if (File.Exists(oldFilePath))
+                        File.Delete(oldFilePath);
+                }
+
+                evnt.Img = $"/images/events/{uniqueFileName}";
+            }
+
+            evnt.LastImageUpdate = DateTime.UtcNow;
+            evnt.ImageUpdateCountToday += 1;
+            evnt.Title = updateEvent.Title;
+            evnt.Description = updateEvent.Description;
+            evnt.Location = updateEvent.Location;
+            evnt.AgeRangeMax = updateEvent.AgeRangeMax;
+            evnt.AgeRangeMin = updateEvent.AgeRangeMin;
+            evnt.IsPublic = updateEvent.IsPublic;
+            evnt.StartTime = updateEvent.StartTime;
+            evnt.EndTime = updateEvent.EndTime;
+
+            _context.Update(evnt);
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<bool> JoinEvent(int id)
