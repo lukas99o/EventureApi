@@ -609,6 +609,7 @@ namespace Vänskap_Api.Service
                 result.EventParticipants.Remove(participant);
                 var conversationParticipant = await _context.ConversationParticipants
                     .SingleOrDefaultAsync(cp => cp.ConversationId == result.ConversationId && cp.UserId == UserId);
+
                 if (conversationParticipant != null)
                 {
                     _context.ConversationParticipants.Remove(conversationParticipant);
@@ -616,7 +617,7 @@ namespace Vänskap_Api.Service
                 else
                 {
                     await _context.SaveChangesAsync();
-                    return false;
+                    return true;
                 }
 
                 await _context.SaveChangesAsync();
@@ -646,13 +647,17 @@ namespace Vänskap_Api.Service
         {
             var deleteEvent = await _context.Events
                 .Include(e => e.EventParticipants)
+                .Include(e => e.Conversation)
                 .SingleOrDefaultAsync(e => e.Id == id && e.CreatedByUserId == UserId);
 
             if (deleteEvent != null)
             {
-                var eventParticipants = deleteEvent.EventParticipants;
-                _context.EventParticipants.RemoveRange(eventParticipants);
+                if (deleteEvent.Conversation != null)
+                    _context.Conversations.Remove(deleteEvent.Conversation);
+
+                _context.EventParticipants.RemoveRange(deleteEvent.EventParticipants);
                 _context.Events.Remove(deleteEvent);
+
                 await _context.SaveChangesAsync();
                 return true;
             }
