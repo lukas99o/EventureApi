@@ -160,7 +160,7 @@ namespace Vänskap_Api.Service
                 .ThenInclude(ep => ep.User)
                 .Include(e => e.EventInterests)
                 .ThenInclude(ei => ei.Interest)
-                .Where(e => e.IsPublic);
+                .Where(e => e.IsPublic && e.EndTime > DateTime.UtcNow);
 
             var interestIds = new List<int>();
             if (interests != null)
@@ -225,7 +225,7 @@ namespace Vänskap_Api.Service
                 .ToListAsync();
 
             var events = await _context.Events
-                .Where(e => friendIds.Contains(e.CreatedByUserId))
+                .Where(e => friendIds.Contains(e.CreatedByUserId) && e.EndTime > DateTime.UtcNow)
                 .Include(e => e.EventParticipants)
                 .ThenInclude(ep => ep.User)
                 .Include(e => e.EventInterests)
