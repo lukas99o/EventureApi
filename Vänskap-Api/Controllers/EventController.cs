@@ -31,12 +31,14 @@ namespace Vänskap_Api.Controllers
         {
             var evnt = await _eventService.CreateEvent(createEvent);
 
-            if (evnt == null)
-            {
-                return BadRequest("Could not create event");
-            }
-
-            return CreatedAtAction(nameof(ReadEvent), new { id = evnt.EventId }, evnt);
+            if (evnt.Item2 == "Daily event limit reached")           
+                return BadRequest(evnt.Item2);            
+            else if (evnt.Item2 == "Invalid file type")            
+                return BadRequest(evnt.Item2);
+            else if (evnt.Item2 == "File too large")
+                return BadRequest(evnt.Item2);
+            else
+                return CreatedAtAction(nameof(ReadEvent), new { id = evnt.Item1.EventId }, evnt.Item1);
         }
 
         [HttpPost("join/{id}")]
@@ -112,8 +114,17 @@ namespace Vänskap_Api.Controllers
         public async Task<IActionResult> UpdateEvent(int id, EventDto updateEvent)
         {
             var success = await _eventService.UpdateEvent(id, updateEvent);
-            if (!success) return NotFound();
-            return NoContent();
+
+            if (!success.Item1 && success.Item2 == "Event not found") 
+                return NotFound(success.Item2);
+            else if (!success.Item1 && success.Item2 == "Invalid file type")
+                return BadRequest(success.Item2);
+            else if (!success.Item1 && success.Item2 == "File too large")
+                return BadRequest(success.Item2);
+            else if (!success.Item1 && success.Item2 == "You can only update the event image 3 times per day")
+                return BadRequest(success.Item2);
+            else
+                return NoContent();
         }
 
         [Authorize(Roles = "Admin")]

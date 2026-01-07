@@ -26,7 +26,7 @@ namespace Vänskap_Api.Service
             _enviroment = enviroment;
         }
 
-        public async Task<ReadEventDto?> CreateEvent(EventDto createEvent)
+        public async Task<(ReadEventDto?, string?)> CreateEvent(EventDto createEvent)
         {
             var today = DateTime.UtcNow.Date;
 
@@ -37,7 +37,7 @@ namespace Vänskap_Api.Service
 
             if (eventsToday >= 5)
             {
-                throw new Exception("Daily event limit reached");
+                return (null, "Daily event limit reached");
             }
 
             var interests = new List<Interest>();
@@ -103,13 +103,17 @@ namespace Vänskap_Api.Service
                 var fileExtension = Path.GetExtension(createEvent.EventPicture.FileName).ToLower();
                 if (!allowedExtensions.Contains(fileExtension))
                 {
-                    throw new Exception("Invalid file type");
+                    _context.Events.Remove(createObj);
+                    await _context.SaveChangesAsync();
+                    return (null, "Invalid file type");
                 }
 
                 const long MaxFileSize = 2 * 1024 * 1024;
                 if (createEvent.EventPicture.Length > MaxFileSize)
                 {
-                    throw new Exception("File too large");
+                    _context.Events.Remove(createObj);
+                    await _context.SaveChangesAsync();
+                    return (null, "File too large");
                 }
 
                 var uploadsFolder = Path.Combine(_enviroment.WebRootPath, "images", "events");
@@ -150,7 +154,7 @@ namespace Vänskap_Api.Service
                 Img = createObj.Img
             };
 
-            return evnt;
+            return (evnt, null);
         }
 
         public async Task<IEnumerable<ReadEventDto>> ReadAllPublicEvents(List<string?> interests, int? ageMin, int? ageMax)
@@ -416,14 +420,14 @@ namespace Vänskap_Api.Service
             }
         }
 
-        public async Task<bool> UpdateEvent(int id, EventDto updateEvent)
+        public async Task<(bool, string)> UpdateEvent(int id, EventDto updateEvent)
         {
             var evnt = await _context.Events
                 .Include(e => e.EventInterests)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (evnt == null)
-                return false;
+                return (false, "Event not found");
 
             var interests = new List<Interest>();
             if (updateEvent.Interests != null)
@@ -449,11 +453,15 @@ namespace Vänskap_Api.Service
                 var fileExtension = Path.GetExtension(updateEvent.EventPicture.FileName).ToLowerInvariant();
 
                 if (!allowedExtensions.Contains(fileExtension))
-                    throw new Exception("Invalid file type");
+                {
+                    return (false, "Invalid file type");
+                }
 
                 const long MaxFileSize = 2 * 1024 * 1024; 
                 if (updateEvent.EventPicture.Length > MaxFileSize)
-                    throw new Exception("File too large");
+                {
+                    return (false, "File too large");
+                }
 
                 var today = DateTime.UtcNow.Date;
 
@@ -464,7 +472,7 @@ namespace Vänskap_Api.Service
 
                 if (evnt.ImageUpdateCountToday >= 3)
                 {
-                    throw new Exception("You can only update the event image 3 times per day");
+                    return (false, "You can only update the event image 3 times per day");
                 }
 
                 var uploadsFolder = Path.Combine(_enviroment.WebRootPath, "images", "events");
@@ -501,7 +509,7 @@ namespace Vänskap_Api.Service
             _context.Update(evnt);
             await _context.SaveChangesAsync();
 
-            return true;
+            return (true, "Event updated successfully");
         }
 
         public async Task<bool> JoinEvent(int id)
@@ -652,6 +660,14 @@ namespace Vänskap_Api.Service
                     _context.Conversations.Remove(deleteEvent.Conversation);
 
                 _context.EventParticipants.RemoveRange(deleteEvent.EventParticipants);
+
+                if (!string.IsNullOrEmpty(deleteEvent.Img))
+                {
+                    var oldFilePath = Path.Combine(_enviroment.WebRootPath, deleteEvent.Img.TrimStart('/'));
+                    if (File.Exists(oldFilePath))
+                        File.Delete(oldFilePath);
+                }
+
                 _context.Events.Remove(deleteEvent);
 
                 await _context.SaveChangesAsync();
