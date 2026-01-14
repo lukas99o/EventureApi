@@ -49,7 +49,7 @@ namespace Vänskap_Api.Controllers
             return Ok(await _friendshipService.SeeFriendRequests());
         }
 
-        [HttpDelete("removefriend/{id}")]
+        [HttpDelete("removefriend/{userName}")]
         public async Task<IActionResult> RemoveFriend(string userName)
         {
             var result = await _friendshipService.RemoveFriend(userName);

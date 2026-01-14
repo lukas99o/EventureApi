@@ -28,5 +28,8 @@ namespace Vänskap_Api.Models
 
         public int ConversationId { get; set; }
         public Conversation Conversation { get; set; } = null!;
+
+        public DateTime? LastImageUpdate { get; set; }
+        public int ImageUpdateCountToday { get; set; } = 0;
     }
 }

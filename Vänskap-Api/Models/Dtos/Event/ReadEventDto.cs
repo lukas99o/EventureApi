@@ -8,8 +8,8 @@ namespace Vänskap_Api.Models.Dtos.Event
         public required string UserId { get; set; }
         public required string Title { get; set; }
         public string? Description { get; set; }
-        public DateTime? StartTime { get; set; }
-        public DateTime? EndTime { get; set; }
+        public string? StartTime { get; set; }
+        public string? EndTime { get; set; }
         public string? Location { get; set; }
         public int? AgeRangeMin { get; set; }
         public int? AgeRangeMax { get; set; }

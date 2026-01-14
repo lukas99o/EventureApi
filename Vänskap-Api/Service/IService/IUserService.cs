@@ -7,5 +7,6 @@ namespace Vänskap_Api.Service.IService
         Task<string> UploadProfilePictureAsync(IFormFile profilePicture);
         Task<UserDto?> GetUser(string userId);
         Task<bool> UpdateUserAbout(string newAboutText);
+        Task<bool> DeleteProfilePictureAsync();
     }
 }
