@@ -34,7 +34,7 @@ namespace Vänskap_Api.Controllers
                 return Unauthorized();
 
             if (!await _userManager.IsEmailConfirmedAsync(user)) 
-                return Unauthorized("Du måste bekräfta din e-post först.");
+                return Unauthorized("You must confirm your email first.");
 
             var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
 
@@ -80,16 +80,16 @@ namespace Vänskap_Api.Controllers
 
                 if (errors.Any(e => e.Code == "DuplicateUserName"))
                 {
-                    return BadRequest("Användarnamnet är redan taget.");
+                    return BadRequest("The username is already taken.");
                 }
 
                 if (errors.Any(e => e.Code == "DuplicateEmail"))
                 {
-                    return BadRequest("E-postadressen används redan.");
+                    return BadRequest("The email address is already in use.");
                 }
 
                 var allErrors = errors.Select(e => e.Description);
-                return BadRequest(new { message = "Registrering misslyckades.", errors = allErrors });
+                return BadRequest(new { message = "Registration failed.", errors = allErrors });
             }
 
             await _userManager.AddToRoleAsync(user, "User");
@@ -101,9 +101,9 @@ namespace Vänskap_Api.Controllers
                 .Replace("{FirstName}", user.FirstName)
                 .Replace("{confirmationLink}", confirmationLink);
 
-            await _emailService.SendEmailAsync(user.Email, "Bekräfta din e-post", htmlBody);
+            await _emailService.SendEmailAsync(user.Email, "Confirm your email", htmlBody);
 
-            return Ok("Registrering lyckades");
+            return Ok("Registration successful");
         }
 
         [HttpPost("resend-email")]
@@ -113,7 +113,7 @@ namespace Vänskap_Api.Controllers
 
             if (user == null)
             {
-                return NotFound("Användare hittades inte.");
+                return NotFound("User not found.");
             }
             else
             {
@@ -124,9 +124,9 @@ namespace Vänskap_Api.Controllers
                     .Replace("{FirstName}", user.FirstName)
                     .Replace("{confirmationLink}", confirmationLink);
 
-                await _emailService.SendEmailAsync(user.Email!, "Bekräfta din e-post för att registrera dig i Vänskap", htmlBody);
+                await _emailService.SendEmailAsync(user.Email!, "Confirm your email to register in Vänskap", htmlBody);
 
-                return Ok("Bekräftelse mail skickat! Kontrollera din inkorg. Om du inte ser det, kolla skräpposten.");
+                return Ok("Confirmation email sent! Check your inbox. If you don't see it, check your spam folder.");
             }
         }
 
@@ -134,17 +134,17 @@ namespace Vänskap_Api.Controllers
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return NotFound("Användare hittades inte.");
+            if (user == null) return NotFound("User not found.");
 
             var decodedToken = Uri.UnescapeDataString(token);
 
             var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
             if (!result.Succeeded)
             {
-                return BadRequest("Bekräftelsen misslyckades.");
+                return BadRequest("Email confirmation failed.");
             }
 
-            return Ok("E-post bekräftad!");
+            return Ok("Email confirmed!");
         }
     }
 }
