@@ -101,7 +101,7 @@ namespace Vänskap_Api.Controllers
                 .Replace("{FirstName}", user.FirstName)
                 .Replace("{confirmationLink}", confirmationLink);
 
-            await _emailService.SendEmailAsync(user.Email, "Confirm your email", htmlBody);
+            await _emailService.SendEmailAsync(user.Email, "Confirm your email register in Friendship.", htmlBody);
 
             return Ok("Registration successful");
         }
@@ -124,7 +124,7 @@ namespace Vänskap_Api.Controllers
                     .Replace("{FirstName}", user.FirstName)
                     .Replace("{confirmationLink}", confirmationLink);
 
-                await _emailService.SendEmailAsync(user.Email!, "Confirm your email to register in Vänskap", htmlBody);
+                await _emailService.SendEmailAsync(user.Email!, "Confirm your email to register in Friendship.", htmlBody);
 
                 return Ok("Confirmation email sent! Check your inbox. If you don't see it, check your spam folder.");
             }
