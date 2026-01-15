@@ -22,21 +22,23 @@ public class UserService : IUserService
 
     public async Task<UserDto?> GetUser(string userId)
     {
-        var user = await _userManager.Users
-            .Where(u => u.Id == userId)
-            .Select(u => new UserDto
-            {
-                UserName = u.UserName!,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Age = DateTime.Now.Year - u.DateOfBirth.Year - (DateTime.Now.DayOfYear < u.DateOfBirth.DayOfYear ? 1 : 0),
-                ProfilePicturePath = u.ProfilePicturePath ?? string.Empty,
-                About = u.About ?? string.Empty
-            })
-            .FirstOrDefaultAsync();
+        var userEntity = await _userManager.FindByIdAsync(userId);
+        if (userEntity == null) return null;
 
-        return user; 
+        var userDto = new UserDto
+        {
+            UserName = userEntity.UserName!,
+            FirstName = userEntity.FirstName,
+            LastName = userEntity.LastName,
+            Age = DateTime.Now.Year - userEntity.DateOfBirth.Year
+                  - (DateTime.Now.DayOfYear < userEntity.DateOfBirth.DayOfYear ? 1 : 0),
+            ProfilePicturePath = userEntity.ProfilePicturePath ?? string.Empty,
+            About = userEntity.About ?? string.Empty
+        };
+
+        return userDto;
     }
+
 
     public async Task<string> UploadProfilePictureAsync(IFormFile profilePicture)
     {
