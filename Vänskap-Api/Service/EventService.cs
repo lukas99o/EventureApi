@@ -157,9 +157,10 @@ namespace Vänskap_Api.Service
             return (evnt, null);
         }
 
-        public async Task<IEnumerable<ReadEventDto>> ReadAllPublicEvents(List<string?> interests, int? ageMin, int? ageMax)
+        public async Task<IEnumerable<ReadEventDto>> ReadAllPublicEvents(List<string?> interests, int? ageMin, int? ageMax, string sort, int page = 1, int pageSize = 10)
         {
             var query = _context.Events
+                .AsNoTracking()
                 .Include(e => e.EventParticipants)
                 .ThenInclude(ep => ep.User)
                 .Include(e => e.EventInterests)
@@ -194,6 +195,19 @@ namespace Vänskap_Api.Service
             {
                 query = query.Where(e => e.EventInterests!.Any(i => interestIds.Contains(i.InterestId)));
             }
+
+            if (sort == "alphabetical")
+            {
+                query = query.OrderBy(e => e.Title);
+            }
+            else 
+            {
+                query = query.OrderBy(e => e.StartTime);
+            }
+
+            query = query 
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
 
             var result = await query.ToListAsync();
 
@@ -679,7 +693,10 @@ namespace Vänskap_Api.Service
 
         public async Task<List<string>> GetInterests()
         {
-            return await _context.Interests.Select(i => i.Name).ToListAsync();
+            return await _context.Interests
+                .OrderBy(i => i.Name)
+                .Select(i => i.Name)
+                .ToListAsync();
         }
 
         public async Task<List<int>> EventPartcipantStatus()

@@ -62,7 +62,7 @@ namespace Vänskap_Api.Controllers
         [HttpPost("publicevents")]
         public async Task<ActionResult<IEnumerable<ReadEventDto>>> ReadAllPublicEvents(ReadAllPublicEventsDto dto)
         {
-            return Ok(await _eventService.ReadAllPublicEvents(dto.Interests!, dto.AgeMin, dto.AgeMax));
+            return Ok(await _eventService.ReadAllPublicEvents(dto.Interests!, dto.AgeMin, dto.AgeMax, dto.Sort, dto.Page, dto.PageSize));
         }
 
         [HttpGet("friendsevents")]
