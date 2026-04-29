@@ -16,6 +16,7 @@ namespace Vänskap_Api_Tests.IntegrationTests
     {
         public string TestUserId { get; set; } = "test-user-id";
         public string TestUserName { get; set; } = "testuser";
+        private readonly string _databaseName = $"TestDb-{Guid.NewGuid()}";
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -31,7 +32,7 @@ namespace Vänskap_Api_Tests.IntegrationTests
                 // Lägg till InMemory DbContext
                 services.AddDbContext<ApplicationDbContext>(options =>
                 {
-                    options.UseInMemoryDatabase("TestDb");
+                    options.UseInMemoryDatabase(_databaseName);
                 });
 
                 // Konfigurera test-auth
