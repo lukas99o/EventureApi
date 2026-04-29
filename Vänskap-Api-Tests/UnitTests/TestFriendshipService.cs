@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Security.Claims;
-using Vänskap_Api.Data;
-using Vänskap_Api.Models;
-using Vänskap_Api.Service;
+using VÃ¤nskap_Api.Data;
+using VÃ¤nskap_Api.Models;
+using VÃ¤nskap_Api.Service;
 
-namespace Vänskap_Api_Tests.UnitTests
+namespace VÃ¤nskap_Api_Tests.UnitTests
 {
     public class TestFriendshipService
     {

@@ -7,10 +7,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using Vänskap_Api.Data;
-using Vänskap_Api.Models;
+using VÃ¤nskap_Api.Data;
+using VÃ¤nskap_Api.Models;
 
-namespace Vänskap_Api_Tests.IntegrationTests
+namespace VÃ¤nskap_Api_Tests.IntegrationTests
 {
     public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram> where TProgram : class
     {
@@ -28,7 +28,7 @@ namespace Vänskap_Api_Tests.IntegrationTests
                     d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
                 if (descriptor != null) services.Remove(descriptor);
 
-                // Lägg till InMemory DbContext
+                // LÃ¤gg till InMemory DbContext
                 services.AddDbContext<ApplicationDbContext>(options =>
                 {
                     options.UseInMemoryDatabase("TestDb");

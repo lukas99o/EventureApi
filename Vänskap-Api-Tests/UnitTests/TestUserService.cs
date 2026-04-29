@@ -7,11 +7,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using System.Security.Claims;
-using Vänskap_Api.Data;
-using Vänskap_Api.Models;
-using Vänskap_Api.Models.Dtos.User;
+using VÃ¤nskap_Api.Data;
+using VÃ¤nskap_Api.Models;
+using VÃ¤nskap_Api.Models.Dtos.User;
 
-namespace Vänskap_Api_Tests.UnitTests
+namespace VÃ¤nskap_Api_Tests.UnitTests
 {
     public class TestUserService
     {

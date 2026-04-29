@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
-using Vänskap_Api;
-using Vänskap_Api.Data;
-using Vänskap_Api.Models;
-using Vänskap_Api.Models.Dtos.Conversation;
+using VÃ¤nskap_Api;
+using VÃ¤nskap_Api.Data;
+using VÃ¤nskap_Api.Models;
+using VÃ¤nskap_Api.Models.Dtos.Conversation;
 
-namespace Vänskap_Api_Tests.IntegrationTests
+namespace VÃ¤nskap_Api_Tests.IntegrationTests
 {
     public class ConversationControllerTests : IClassFixture<CustomWebApplicationFactory<Program>>, IDisposable
     {
