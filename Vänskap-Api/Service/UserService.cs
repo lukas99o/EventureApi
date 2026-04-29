@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using Vänskap_Api.Models;
-using Vänskap_Api.Models.Dtos.User;
-using Vänskap_Api.Service.IService;
+using VÃ¤nskap_Api.Models;
+using VÃ¤nskap_Api.Models.Dtos.User;
+using VÃ¤nskap_Api.Service.IService;
 
 public class UserService : IUserService
 {
