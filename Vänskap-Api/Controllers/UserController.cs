@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Vänskap_Api.Models.Dtos.User;
-using Vänskap_Api.Service.IService;
+using VÃ¤nskap_Api.Models.Dtos.User;
+using VÃ¤nskap_Api.Service.IService;
 
 [Authorize(Roles = "Admin,User")]
 [ApiController]
