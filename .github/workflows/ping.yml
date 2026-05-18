@@ -1,8 +1,8 @@
 name: Ping API
 
-on:
-  schedule:
-    - cron: "*/5 * * * *" # var 5:e minut
+#on:
+ # schedule:
+  #  - cron: "*/5 * * * *" # var 5:e minut
 
 jobs:
   ping:
