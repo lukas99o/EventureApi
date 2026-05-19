@@ -1,4 +1,4 @@
-name: Build, test and deploy API to Railway
+name: Build test and deploy API to Railway
 
 on:
   push:
