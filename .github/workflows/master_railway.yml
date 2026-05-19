@@ -29,11 +29,6 @@ jobs:
 
       - name: Test
         run: dotnet test --configuration Release --no-build
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --ci --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment production
+        # Railway deploys automatically via its native GitHub integration.
+        # This workflow acts as a CI gate: if build/tests fail, the commit
+        # is marked failed and Railway will not deploy.
