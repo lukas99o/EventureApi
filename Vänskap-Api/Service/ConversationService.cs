@@ -22,7 +22,6 @@ namespace Vänskap_Api.Service
 
         public async Task<SeeConversationDto?> StartPrivateConversation(string username)
         {
-            // Fetch users friends
             var user = await _context.Users
                 .Include(f => f.Friendships)
                 .ThenInclude(f => f.Friend)
